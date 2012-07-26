@@ -2,7 +2,7 @@ unit Controller;
 
 interface
 
-uses IdHTTP, SysUtils, Classes, ShellAPI;
+uses IdHTTP, SysUtils, Classes, ShellAPI, SettingsController, Utils, Config;
 
 const
 
@@ -24,22 +24,29 @@ const
 
 type
 
+  TSession = record
+    login:string;
+    ticket:string;
+    sessid:string;
+    version:string;
+  end;
+
   TLauncherController = class
   private
     //Temporary place
     fLogin:string;
-    JavaInitMemory,
-    JavaMaxMemory:integer;
 
-    //Settings: TSettings;
+    Session: TSession;
+    Settings: TSettingsHandler;
   public
-    //procedure SetMemory(Max:integer; Initial:integer=256);
+    procedure SetMemory(Max:integer; Initial:integer=256);
     //procedure SetPath(NewPath:string);
     //procedure DownloadClient;
-    //
+
     function Login(User, Pass:string):integer;
     function Launch:integer;
     constructor Create;
+    destructor Destroy;
   end;
 
 implementation
@@ -48,17 +55,22 @@ implementation
 
 constructor TLauncherController.Create;
 begin
-  JavaInitMemory:=512;
-  JavaMaxMemory:=1024;
+  Settings:=TSettingsHandler.Create;
+end;
+
+destructor TLauncherController.Destroy;
+begin
+  if Settings<>nil then
+    Settings.Free;
 end;
 
 function TLauncherController.Launch: integer;
 var exinfo:TShellExecuteInfoW;
     par, mpath:string;
 begin
-  if flogin='' then
-    flogin:='Player';
-  mpath:={GetClientPath(si)}'D:\Users\KOOL\AppData\Roaming\.minecraft'+'\bin\';
+  if Session.login='' then
+    Session.login:='Player';
+  mpath:=GetPathSubstr('%APPDATA%\.minecraft')+'\bin\';
   FillChar(exinfo, sizeOf(exinfo), 0);
     with exinfo do
     begin
@@ -67,8 +79,8 @@ begin
       Wnd := 0;
       lpDirectory := PWideChar(mpath);
       lpFile := 'java';
-      par:= '-Xms'+IntToStr(JavaInitMemory)+'m -Xmx'+IntToStr(JavaMaxMemory)+'m -Djava.library.path=natives '+
-                     '-cp "minecraft.jar;jinput.jar;lwjgl.jar;lwjgl_util.jar;" net.minecraft.client.Minecraft '+'"'+flogin+'"'+' "'+{si.SessionId+}'"';
+      par:= '-Xms'+IntToStr(Settings.Local.JavaInitMemory)+'m -Xmx'+IntToStr(Settings.Local.JavaMaxMemory)+'m -Djava.library.path=natives '+
+                     '-cp "minecraft.jar;jinput.jar;lwjgl.jar;lwjgl_util.jar;" net.minecraft.client.Minecraft '+'"'+Session.login+'"'+' "'+Session.sessid+'"';
       lpParameters := PWideChar(par);
       nShow := 0;
     end;
@@ -86,13 +98,14 @@ begin
   par:=TStringList.Create;
   par.Add('user='+User);
   par.Add('password='+Pass);
-  par.Add('version='+'18');
+  par.Add('version='+_Version);
   try
-    Res:=HTTP.Post('http://example.com/auth.php', par);
+    Res:=HTTP.Post(_AuthURL, par);
     if Pos(User, Res)>0 then
       begin
         Result:=0;
-        flogin:=User;
+
+        Session.login:=User;
       end
     else
       begin
@@ -106,6 +119,11 @@ begin
 
   par.Free;
   HTTP.Free;
+end;
+
+procedure TLauncherController.SetMemory(Max, Initial: integer);
+begin
+  Settings.SetMemory(Max, Initial);
 end;
 
 end.

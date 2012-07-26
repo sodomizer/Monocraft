@@ -3,8 +3,7 @@ unit MForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Controller;
+  SysUtils, Controls, Forms, StdCtrls, Controller, System.Classes;
 
 type
   TForm1 = class(TForm)
@@ -13,8 +12,12 @@ type
     Button1: TButton;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
+    Edit3: TEdit;
+    Edit4: TEdit;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     Controller: TLauncherController;
@@ -31,9 +34,10 @@ implementation
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
+  Controller.SetMemory(StrToInt(Edit4.Text), StrToInt(Edit3.Text));
   if Controller.Login(Edit1.Text, Edit2.Text)<>0 then
     if Edit2.Text<>'' then
-      MessageBox(0, 'Error!', '', 0)
+      Application.MessageBox('Error!', '', 0)
     else
       Controller.Launch
   else
@@ -43,6 +47,12 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   Controller:=TLauncherController.Create;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  if Controller<>nil then
+    Controller.Free;
 end;
 
 end.
