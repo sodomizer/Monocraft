@@ -59,7 +59,7 @@ object Form1: TForm1
     Left = 199
     Top = 8
     Width = 75
-    Height = 45
+    Height = 21
     Caption = #1048#1075#1088#1072#1090#1100
     TabOrder = 2
     OnClick = Button1Click
@@ -81,5 +81,14 @@ object Form1: TForm1
     NumbersOnly = True
     TabOrder = 4
     Text = '4096'
+  end
+  object Button2: TButton
+    Left = 199
+    Top = 32
+    Width = 75
+    Height = 21
+    Caption = #1054#1092#1092#1083#1072#1081#1085
+    TabOrder = 5
+    OnClick = Button2Click
   end
 end

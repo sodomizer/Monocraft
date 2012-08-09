@@ -14,6 +14,7 @@ function GetDiskSerialNumber(Disk: char): Cardinal;
 function GetAppDataFolder:string;
 function GetTempFolder:string;
 function GetPathSubstr(ss:string):string;
+function GetFreeRAM:uint64;
 
 var Path, Temp, Data:string;
 
@@ -112,6 +113,17 @@ begin
   Result:=ss;
 end;
 
+function GetFreeRAM:uint64;
+var
+  memory: TMemoryStatusEx;
+begin
+  memory.dwLength := SizeOf(memory);
+  GlobalMemoryStatusEx(memory);
+  Result:=Round(memory.ullAvailPhys/1024);
+end;
+
 initialization
+
+Temp:=GetTempFolder;
 
 end.
